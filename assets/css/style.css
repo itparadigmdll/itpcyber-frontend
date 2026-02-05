@@ -18,7 +18,7 @@ body {
 /* top right user */
 .topbar {
   position: absolute;
-  top: 20px;
+  top: 16px;
   right: 24px;
   display: flex;
   align-items: center;
@@ -26,8 +26,8 @@ body {
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   background: #0f172a;
   border-radius: 50%;
 }
@@ -70,7 +70,9 @@ h1 {
 }
 
 .user {
-  font-size: clamp(0.75rem, 1.4vw, 0.85rem);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #1e293b;
 }
 
 
