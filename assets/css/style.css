@@ -18,18 +18,27 @@ body {
 /* top right user */
 .topbar {
   position: absolute;
-  top: 16px;
+  top: 18px;
   right: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  background: #0f172a;
-  border-radius: 50%;
+.avatar i {
+  font-size: 30px;
+}
+
+.avatar i:hover {
+  cursor: pointer;
+  color: rgb(36, 18, 197);
+}
+
+.user {
+  user-select: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1e293b;
 }
 
 /* center content */
@@ -68,13 +77,6 @@ h1 {
   font-weight: 600;
   font-style: normal;
 }
-
-.user {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #1e293b;
-}
-
 
 /* menu card */
 .card {
