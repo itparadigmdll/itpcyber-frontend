@@ -4,6 +4,7 @@ import "./index.css";
 import { HashRouter, Route, Routes } from "react-router";
 import Index from "./pages";
 import Rankings from "./pages/rankings";
+import Achievements from "./pages/achievement";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -11,6 +12,7 @@ createRoot(document.getElementById("root")).render(
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/rankings" element={<Rankings />} />
+        <Route path="/achievement" element={<Achievements />} />
       </Routes>
     </HashRouter>
   </StrictMode>,
