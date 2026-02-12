@@ -1,8 +1,12 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import LayoutFull from "../layout/base";
+import { useState } from "react";
+import Login from "./login";
 
 export default function Rankings() {
+  const [showLogin, setShowLogin] = useState(false);
+
   // Sample top scorers data
   const topScorers = [
     { name: "Alice", score: 95 },
@@ -21,7 +25,10 @@ export default function Rankings() {
           ⟵ Back
         </Link>
 
-        <div className="flex items-center gap-3 cursor-pointer hover:bg-slate-800 px-3 py-2 rounded-full transition">
+        <div
+          onClick={() => setShowLogin(true)}
+          className="flex items-center gap-3 cursor-pointer hover:bg-slate-800 hover:scale-105 transform px-3 py-2 rounded-full transition"
+        >
           <User size={20} className="text-white" />
           <span className="text-sm font-medium text-white">Guest</span>
         </div>
@@ -45,6 +52,11 @@ export default function Rankings() {
           ))}
         </div>
       </div>
+
+      {/* Login Modal */}
+      {showLogin && (
+        <Login onClose={() => setShowLogin(false)} />
+      )}
     </LayoutFull>
   );
 }
