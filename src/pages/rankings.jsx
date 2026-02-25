@@ -1,13 +1,12 @@
-import { Link } from "react-router-dom";
-import { User } from "lucide-react";
-import LayoutFull from "../layout/base";
 import { useState } from "react";
-import Login from "./login";
+import { Link } from "react-router-dom";
+import LayoutFull from "../layout/base";
+import { Navbar, LoginModal, SignupModal } from "./auth";
 
-export default function Rankings() {
+export default function Rankings({ user }) {
   const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
-  // Sample top scorers data
   const topScorers = [
     { name: "Alice", score: 95 },
     { name: "Bob", score: 88 },
@@ -16,26 +15,38 @@ export default function Rankings() {
 
   return (
     <LayoutFull>
-      {/* Top Bar */}
-      <header className="w-full px-8 py-4 flex items-center justify-between bg-slate-900 shadow-md">
-        <Link
-          to="/"
-          className="text-white bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-lg transition"
-        >
-          ⟵ Back
-        </Link>
+      <Navbar user={user} setShowLogin={setShowLogin} setShowSignup={setShowSignup}/>
 
-        <div
-          onClick={() => setShowLogin(true)}
-          className="flex items-center gap-3 cursor-pointer hover:bg-slate-800 hover:scale-105 transform px-3 py-2 rounded-full transition"
-        >
-          <User size={20} className="text-white" />
-          <span className="text-sm font-medium text-white">Guest</span>
-        </div>
-      </header>
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+          onSwitchToSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+      )}
 
-      {/* Main Section */}
+      {showSignup && (
+        <SignupModal
+          onClose={() => setShowSignup(false)}
+          onSwitchToLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+
       <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center px-4 bg-slate-50">
+        <div className="w-full max-w-md mb-4">
+          <Link
+            to="/"
+            className="inline-block text-white bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-lg transition"
+          >
+            ⟵ Back
+          </Link>
+        </div>
+
         <h1 className="text-3xl font-bold text-slate-900 mb-4">
           Member Grades
         </h1>
@@ -46,17 +57,16 @@ export default function Rankings() {
               key={index}
               className="flex justify-between items-center bg-slate-100 rounded-xl px-4 py-2"
             >
-              <span className="font-medium text-slate-900">{player.name}</span>
-              <span className="font-semibold text-slate-700">{player.score}</span>
+              <span className="font-medium text-slate-900">
+                {player.name}
+              </span>
+              <span className="font-semibold text-slate-700">
+                {player.score}
+              </span>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Login Modal */}
-      {showLogin && (
-        <Login onClose={() => setShowLogin(false)} />
-      )}
     </LayoutFull>
   );
 }

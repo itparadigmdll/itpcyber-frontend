@@ -1,62 +1,117 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User } from "lucide-react";
 import LayoutFull from "../layout/base";
-import { useState } from "react";
-import Login from "./login";
+import { Navbar, LoginModal, SignupModal } from "./auth";
+
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 export default function Index() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+
   const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  // 🔥 Listen to auth state
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setProfile(docSnap.data());
+        }
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    return () => unsub();
+  }, []);
 
   return (
     <LayoutFull>
-      {/* Top Bar */}
-      <header className="w-full px-8 py-4 flex items-center justify-between bg-slate-900 shadow-md">
-        <h2 className="text-lg font-semibold text-white">
-          iTP CyberSec
-        </h2>
+      {/* NAVBAR */}
+      <Navbar
+        user={user}
+        profile={profile}
+        setShowLogin={setShowLogin}
+      />
 
-        <div
-          onClick={() => setShowLogin(true)}
-          className="flex items-center gap-3 cursor-pointer hover:bg-slate-800 hover:scale-105 transform px-3 py-2 rounded-full transition"
-        >
-          <User size={20} className="text-white" />
-          <span className="text-sm font-medium text-white">Guest</span>
-        </div>
-      </header>
+      {/* MODALS */}
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+          onSwitchToSignup={() => {
+            setShowLogin(false);
+            setShowSignup(true);
+          }}
+        />
+      )}
 
-      {/* Main Section */}
-      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center px-4 bg-slate-50">
-        <div className="w-full max-w-md text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+      {showSignup && (
+        <SignupModal
+          onClose={() => setShowSignup(false)}
+          onSwitchToLogin={() => {
+            setShowSignup(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+
+      {/* MAIN CONTENT */}
+      <main className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center px-4 bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="w-full max-w-3xl text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
             iTP CyberSec Team
           </h1>
 
-          <p className="text-slate-600 mb-6 text-lg">
-            Scores: <span className="font-semibold">0</span>
+          <p className="text-lg md:text-xl text-slate-600 mb-8">
+            Your scores, achievements, and rankings are all here.
           </p>
 
-          <div className="bg-white shadow-lg rounded-2xl p-8 space-y-4">
+          {/* SCORE CARD */}
+          <div className="bg-white shadow-xl rounded-3xl p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-slate-800 mb-4">
+              Current Score
+            </h2>
+
+            <div className="text-3xl font-bold text-cyan-600">
+              {profile?.score ?? 0}
+            </div>
+          </div>
+
+          {/* NAVIGATION */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link
-              to="achievements"
-              className="block w-full text-base font-semibold bg-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 transition"
+              to="/submit"
+              className="block py-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition"
+            >
+              Submit A Flag
+            </Link>
+
+            <Link
+              to="/achievements"
+              className="block py-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition"
             >
               Achievements
             </Link>
 
             <Link
-              to="rankings"
-              className="block w-full text-base font-semibold bg-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 transition"
+              to="/rankings"
+              className="block py-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition"
             >
               Rankings
             </Link>
           </div>
         </div>
-      </div>
-
-      {/* Login Modal */}
-      {showLogin && (
-        <Login onClose={() => setShowLogin(false)} />
-      )}
+      </main>
     </LayoutFull>
   );
 }
