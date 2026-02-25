@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import LayoutFull from "../layout/base";
+import { ArrowLeft } from "lucide-react";
 
 export default function Submit() {
   const [flag, setFlag] = useState("");
@@ -30,7 +31,8 @@ export default function Submit() {
               to="/"
               className="text-sm text-cyan-400 hover:text-cyan-300 transition"
             >
-              ← Back to Home
+            <ArrowLeft size={18} className="inline mr-2" />
+            Back to Home
             </Link>
           </div>
 

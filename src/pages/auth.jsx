@@ -20,7 +20,7 @@ export function Navbar({ user, setShowLogin }) {
   };
 
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between bg-slate-950 border-b border-slate-800">
+    <header className="w-full px-3 py-4 flex items-center justify-between bg-slate-950 border-b border-slate-800">
       <div className="flex items-center gap-3">
         <Shield size={22} className="text-cyan-400" />
         <h2 className="text-base font-semibold tracking-wide text-slate-100">
