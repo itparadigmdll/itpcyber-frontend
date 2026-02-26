@@ -100,7 +100,7 @@ export default function Index() {
               to="/achievements"
               className="block py-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition"
             >
-              Achievements
+              Solved Challenges
             </Link>
 
             <Link
