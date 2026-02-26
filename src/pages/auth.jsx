@@ -223,17 +223,16 @@ export function SignupModal({ onClose, onSwitchToLogin }) {
 
       const user = userCredential.user;
 
-      // 🔥 Set displayName for Auth user
+      // set display name
       await updateProfile(user, {
         displayName: form.name,
       });
 
-      // 🔥 Create user document in Firestore
+      // create firestore user doc (CLEAN VERSION)
       await setDoc(doc(db, "users", user.uid), {
         name: form.name,
         email: form.email,
         score: 0,
-        achievements: [],
         createdAt: serverTimestamp(),
       });
 
