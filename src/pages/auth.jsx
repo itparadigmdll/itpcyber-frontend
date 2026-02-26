@@ -268,7 +268,7 @@ export function SignupModal({ onClose, onSwitchToLogin }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="name"
-            placeholder="Full Name"
+            placeholder="Username"
             onChange={handleChange}
             className="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
