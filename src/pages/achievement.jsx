@@ -39,7 +39,7 @@ export default function Achievements({ user }) {
 
           return {
             title: data.challenge || "Unknown Challenge",
-            description: `+${data.score} points`,
+            description: `+${data.points} points`,
             date: data.solvedAt?.toDate
               ? data.solvedAt.toDate().toLocaleDateString()
               : "Unknown date",

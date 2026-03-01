@@ -28,100 +28,117 @@ export default function Submit() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+   e.preventDefault();
 
-    const user = auth.currentUser;
+   const user = auth.currentUser;
 
-    if (!user) {
-      setMessage({ type: "error", text: "You must be logged in." });
-      return;
-    }
+   if (!user) {
+     setMessage({ type: "error", text: "You must be logged in." });
+     return;
+   }
 
-    const cleanFlag = flag.trim();
+   const cleanFlag = flag.trim();
 
-    if (!cleanFlag) {
-      setMessage({ type: "error", text: "Flag cannot be empty." });
-      return;
-    }
+   if (!cleanFlag) {
+     setMessage({ type: "error", text: "Flag cannot be empty." });
+     return;
+   }
 
-    setLoading(true);
-    setMessage(null);
+   setLoading(true);
+   setMessage(null);
 
-    try {
-      const hashedInput = await sha256(cleanFlag);
+   try {
+     const hashedInput = await sha256(cleanFlag);
 
-      const snapshot = await getDocs(collection(db, "flags"));
+     const snapshot = await getDocs(collection(db, "flags"));
 
-      let matchedFlag = null;
-      let matchedId = null;
+     let matchedFlag = null;
+     let matchedId = null;
+     let matchedChallengeName = null;
+     let flagIndex = null;
 
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
+     // 🔎 find matching flag inside nested array
+     for (const docSnap of snapshot.docs) {
+       const data = docSnap.data();
 
-        if (data.hash === hashedInput) {
-          matchedFlag = data;
-          matchedId = docSnap.id;
-        }
-      });
+       if (!data.flags || !Array.isArray(data.flags)) continue;
 
-      if (!matchedFlag) {
-        setMessage({
-          type: "error",
-          text: "Incorrect flag. Try again.",
-        });
-        setLoading(false);
-        return;
-      }
+       for (let i = 0; i < data.flags.length; i++) {
+         const flagObj = data.flags[i];
 
-      // 🔎 Check if already solved
-      const solvedRef = doc(
-        db,
-        "users",
-        user.uid,
-        "solved",
-        matchedId
-      );
+         const hashKey = Object.keys(flagObj).find(k => k.startsWith("flag"));
+         const hashValue = flagObj[hashKey];
 
-      const solvedSnap = await getDoc(solvedRef);
+         if (hashValue === hashedInput) {
+           matchedFlag = flagObj;
+           matchedId = docSnap.id;
+           matchedChallengeName = data.challenge;
+           flagIndex = i;
+           break;
+         }
+       }
 
-      if (solvedSnap.exists()) {
-        setMessage({
-          type: "error",
-          text: "You already solved this challenge.",
-        });
-        setLoading(false);
-        return;
-      }
+       if (matchedFlag) break;
+     }
 
-      // ✅ Record solve
-      await setDoc(solvedRef, {
-        solvedAt: new Date(),
-        score: matchedFlag.score,
-        challenge: matchedFlag.challenge,
-      });
+     if (!matchedFlag) {
+       setMessage({
+         type: "error",
+         text: "Incorrect flag. Try again.",
+       });
+       setLoading(false);
+       return;
+     }
 
-      // ✅ Increment user score
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
-        score: increment(matchedFlag.score),
-      });
+     // 🔎 check if user already solved
+     const solvedRef = doc(
+       db,
+       "users",
+       user.uid,
+       "solved",
+       `${matchedId}_${flagIndex}`
+     );
 
-      setMessage({
-        type: "success",
-        text: `Correct! +${matchedFlag.score} points 🎉`,
-      });
+     const solvedSnap = await getDoc(solvedRef);
 
-      setFlag("");
+     if (solvedSnap.exists()) {
+       setMessage({
+         type: "error",
+         text: "You already solved this challenge.",
+       });
+       setLoading(false);
+       return;
+     }
 
-    } catch (err) {
-      setMessage({
-        type: "error",
-        text: "Something went wrong.",
-      });
-    }
+     // ✅ record solve
+     await setDoc(solvedRef, {
+       solvedAt: new Date(),
+       points: matchedFlag.points,
+       challenge: matchedChallengeName,
+     });
+
+     // ✅ increment user score (points)
+     const userRef = doc(db, "users", user.uid);
+     await updateDoc(userRef, {
+       score: increment(matchedFlag.points),
+     });
+
+     setMessage({
+       type: "success",
+       text: `Correct! +${matchedFlag.points} points 🎉`,
+     });
+
+     setFlag("");
+
+   } catch (err) {
+     setMessage({
+       type: "error",
+       text: "Something went wrong.",
+     });
+   }
 
     setLoading(false);
-  };
+  } ;
 
   return (
     <LayoutFull>
