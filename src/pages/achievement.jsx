@@ -34,17 +34,35 @@ export default function Achievements({ user }) {
 
         const snapshot = await getDocs(solvedRef);
 
-        const solvedData = snapshot.docs.map((doc) => {
-          const data = doc.data();
+        // Group solves by challenge name
+        const grouped = {};
 
-          return {
-            title: data.challenge || "Unknown Challenge",
-            description: `+${data.points} points`,
-            date: data.solvedAt?.toDate
-              ? data.solvedAt.toDate().toLocaleDateString()
-              : "Unknown date",
-          };
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const challengeName = data.challenge || "Unknown Challenge";
+        
+          if (!grouped[challengeName]) {
+            grouped[challengeName] = [];
+          }
+        
+          grouped[challengeName].push(data);
         });
+
+        const solvedData = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+              
+        const docId = docSnap.id; // example: flag1_2
+        const parts = docId.split("_");
+        const flagIndex = parts[1]; // "2"
+              
+        return {
+          title: `${data.challenge} (Flag ${Number(flagIndex) + 1})`,
+          description: `+${data.points} points`,
+          date: data.solvedAt?.toDate
+            ? data.solvedAt.toDate().toLocaleDateString()
+            : "Unknown date",
+        };
+      });
 
         setAchievements(solvedData);
       } catch (err) {
@@ -112,7 +130,7 @@ export default function Achievements({ user }) {
               No Solved Challenges yet.
             </p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="max-h-[500px] overflow-y-auto grid gap-4 sm:grid-cols-2 p-2">
               {achievements.map((ach, index) => (
                 <div
                   key={index}
@@ -121,7 +139,7 @@ export default function Achievements({ user }) {
                   <div className="flex-shrink-0">
                     <CheckCircle size={20} className="text-cyan-500" />
                   </div>
-
+              
                   <div className="flex flex-col">
                     <span className="font-semibold text-slate-900">
                       {ach.title}

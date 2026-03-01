@@ -77,7 +77,7 @@ export default function Rankings({ user }) {
         </h1>
 
         {/* Leaderboard */}
-        <div className="w-full max-w-3xl space-y-4">
+        <div className="w-full max-w-3xl max-h-[500px] overflow-y-auto space-y-4 p-2">
           {users.map((player, index) => (
             <div
               key={player.id}
