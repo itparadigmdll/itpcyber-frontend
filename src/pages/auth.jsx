@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   signOut,
+  sendPasswordResetEmail
 } from "firebase/auth";
 
 import { auth, db } from "../firebase";
@@ -68,6 +69,7 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => e.key === "Escape" && handleClose();
@@ -93,14 +95,29 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
 
     try {
       setIsSubmitting(true);
-
       await signInWithEmailAndPassword(auth, form.email, form.password);
-
       handleClose();
     } catch (error) {
       alert("Invalid credentials");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!form.email) {
+      alert("Enter your email first");
+      return;
+    }
+
+    try {
+      setIsSendingReset(true);
+      await sendPasswordResetEmail(auth, form.email);
+      alert("Password reset email sent. Check your inbox.");
+    } catch (error) {
+      alert("Failed to send reset email");
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -155,7 +172,22 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
             </button>
           </div>
 
-          <button className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl transition">
+          {/* Forgot password link */}
+          <div className="text-right -mt-3">
+            <span
+              onClick={handleForgotPassword}
+              className={`text-xs cursor-pointer hover:underline ${
+                isSendingReset ? "text-slate-500" : "text-cyan-400"
+              }`}
+            >
+              {isSendingReset ? "Sending reset..." : "Forgot password?"}
+            </span>
+          </div>
+
+          <button
+            className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl transition"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Logging in..." : "Login"}
           </button>
         </form>
