@@ -4,7 +4,9 @@ import { Eye, EyeOff, X, Shield, User } from "lucide-react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
   signOut,
+  sendPasswordResetEmail
 } from "firebase/auth";
 
 import { auth, db } from "../firebase";
@@ -13,15 +15,13 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 /* =========================
           NAVBAR
 ========================= */
-
 export function Navbar({ user, setShowLogin }) {
   const handleLogout = async () => {
     await signOut(auth);
   };
 
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between bg-slate-950 border-b border-slate-800">
-      
+    <header className="w-full px-3 py-4 flex items-center justify-between bg-slate-950 border-b border-slate-800">
       <div className="flex items-center gap-3">
         <Shield size={22} className="text-cyan-400" />
         <h2 className="text-base font-semibold tracking-wide text-slate-100">
@@ -30,12 +30,21 @@ export function Navbar({ user, setShowLogin }) {
       </div>
 
       {user ? (
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm bg-red-600 hover:bg-red-500 text-white rounded-xl"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Display user name or email */}
+          <span className="text-sm text-slate-100">
+            {user.displayName || user.name}
+          </span>
+
+          {/* Styled logout button matching login */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-800 text-slate-100 rounded-xl border border-slate-700 hover:bg-slate-700 transition"
+          >
+            <User size={16} />
+            Logout
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => setShowLogin(true)}
@@ -60,6 +69,7 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => e.key === "Escape" && handleClose();
@@ -85,18 +95,29 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
 
     try {
       setIsSubmitting(true);
-
-      await signInWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
-
+      await signInWithEmailAndPassword(auth, form.email, form.password);
       handleClose();
     } catch (error) {
       alert("Invalid credentials");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!form.email) {
+      alert("Enter your email first");
+      return;
+    }
+
+    try {
+      setIsSendingReset(true);
+      await sendPasswordResetEmail(auth, form.email);
+      alert("Password reset email sent. Check your inbox.");
+    } catch (error) {
+      alert("Failed to send reset email");
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -151,7 +172,22 @@ export function LoginModal({ onClose, onSwitchToSignup }) {
             </button>
           </div>
 
-          <button className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl transition">
+          {/* Forgot password link */}
+          <div className="text-right -mt-3">
+            <span
+              onClick={handleForgotPassword}
+              className={`text-xs cursor-pointer hover:underline ${
+                isSendingReset ? "text-slate-500" : "text-cyan-400"
+              }`}
+            >
+              {isSendingReset ? "Sending reset..." : "Forgot password?"}
+            </span>
+          </div>
+
+          <button
+            className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl transition"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Logging in..." : "Login"}
           </button>
         </form>
@@ -202,32 +238,36 @@ export function SignupModal({ onClose, onSwitchToLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
-  
+
     try {
       setIsSubmitting(true);
-    
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         form.email,
         form.password
       );
-    
+
       const user = userCredential.user;
-    
-      // 🔥 CREATE USER DOCUMENT
+
+      // set display name
+      await updateProfile(user, {
+        displayName: form.name,
+      });
+
+      // create firestore user doc (CLEAN VERSION)
       await setDoc(doc(db, "users", user.uid), {
         name: form.name,
         email: form.email,
         score: 0,
-        achievements: [],
         createdAt: serverTimestamp(),
       });
-    
+
       handleClose();
     } catch (error) {
       alert(error.message);
@@ -235,6 +275,7 @@ export function SignupModal({ onClose, onSwitchToLogin }) {
       setIsSubmitting(false);
     }
   };
+
   return (
     <div
       onClick={handleClose}
@@ -258,7 +299,7 @@ export function SignupModal({ onClose, onSwitchToLogin }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="name"
-            placeholder="Full Name"
+            placeholder="Username"
             onChange={handleChange}
             className="w-full px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
